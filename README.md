@@ -1,6 +1,10 @@
-# SmackChat (smackchat)
+# SmackChat
 
-A Quasar Framework app
+A simple chat with vue and quasar.
+
+## Firebase Credentials
+
+Create a file called `firebase-config.json` inside `src/boot` with your firebase credentials to login with email and password.
 
 ## Install the dependencies
 ```bash
@@ -12,11 +16,7 @@ yarn
 quasar dev
 ```
 
-
 ### Build the app for production
 ```bash
 quasar build
 ```
-
-### Customize the configuration
-See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
