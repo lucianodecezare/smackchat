@@ -27,7 +27,6 @@
         color="primary"
         type="submit"
         :label="tab"
-        :loading="tab === 'login' ? loadingLogin : loadingRegister"
       />
     </div>
   </q-form>
@@ -43,26 +42,24 @@ export default {
         name: '',
         email: '',
         password: ''
-      },
-      loadingLogin: false,
-      loadingRegister: false
+      }
     };
   },
   methods: {
     ...mapActions('store', ['loginUser', 'registerUser']),
     async login() {
-      this.loadingLogin = true;
+      this.$q.loading.show({ message: 'Autenticando usuário' });
 
       await this.loginUser(this.formData);
 
-      this.loadingLogin = false;
+      this.$q.loading.hide();
     },
     async register() {
-      this.loadingRegister = true;
+      this.$q.loading.show({ message: 'Registrando usuário' });
 
       await this.registerUser(this.formData);
 
-      this.loadingRegister = false;
+      this.$q.loading.hide();
     },
     // #TODO: Notification message for errors and success
     submitForm() {

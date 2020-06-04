@@ -6,6 +6,11 @@ const state = {
 
 const getters = {};
 const actions = {
+  async firebaseUpdateUser({}, payload) {
+    const { updates, userId } = payload;
+
+    await firebaseDb.ref(`users/${userId}`).update(updates);
+  },
   handleAuthStateChanged({ commit, dispatch, state }) {
     firebaseAuth.onAuthStateChanged((user) => {
       if (user) {
@@ -26,7 +31,11 @@ const actions = {
           }
         });
         
-        this.$router.push('/');
+        // #TODO: Improve redirection
+        // Avoiding redundant navigation
+        if (this.$router.app.$route.fullPath !== '/') {
+          this.$router.push('/');
+        }
       } else {
         // User is logged out.
         // Update user status to offline.
@@ -39,6 +48,7 @@ const actions = {
 
         commit('setUserDetails', {});
 
+        // #TODO: Improve redirection
         // Avoiding redundant navigation
         if (this.$router.app.$route.fullPath !== '/auth') {
           this.$router.replace('/auth');
@@ -75,11 +85,6 @@ const actions = {
       });
     }
   },
-  async firebaseUpdateUser({}, payload) {
-    const { updates, userId } = payload;
-
-    await firebaseDb.ref(`users/${userId}`).update(updates);
-  }
 };
 
 const mutations = {
