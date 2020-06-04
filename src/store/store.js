@@ -1,11 +1,42 @@
+import Vue from 'vue';
+
 import { firebaseAuth, firebaseDb } from 'boot/firebase';
 
 const state = {
-  userDetails: {}
+  userDetails: {},
+  users: {}
 };
 
-const getters = {};
+const getters = {
+  users: (state) => {
+    const filteredUsers = {};
+    
+    Object.keys(state.users).forEach((key) => {
+      if (key !== state.userDetails.userId) {
+        filteredUsers[key] = state.users[key];
+      }
+    });
+
+    return filteredUsers;
+  }
+};
+
 const actions = {
+  firebaseGetUsers({ commit }) {
+    firebaseDb.ref('users').on('child_added', (snapshot) => {
+      const userDetails = snapshot.val();
+      const userId = snapshot.key;
+
+      commit('addUser', { userId, userDetails });
+    });
+
+    firebaseDb.ref('users').on('child_changed', (snapshot) => {
+      const userDetails = snapshot.val();
+      const userId = snapshot.key;
+
+      commit('updateUser', { userId, userDetails });
+    });
+  },
   async firebaseUpdateUser({}, payload) {
     const { updates, userId } = payload;
 
@@ -30,6 +61,9 @@ const actions = {
             online: true
           }
         });
+
+        // Get users
+        dispatch('firebaseGetUsers');
         
         // #TODO: Improve redirection
         // Avoiding redundant navigation
@@ -69,7 +103,6 @@ const actions = {
   },
   async registerUser({}, payload) {
     const { email, name, password } = payload;
-
     const auth = await firebaseAuth.createUserWithEmailAndPassword(
       email,
       password
@@ -88,11 +121,18 @@ const actions = {
 };
 
 const mutations = {
+  addUser(state, payload) {
+    const { userDetails, userId } = payload;
+
+    Vue.set(state.users, userId, userDetails);
+  },
   setUserDetails(state, payload) {
     state.userDetails = payload;
   },
-  updateUserStatus(state, status) {
-    state.userDetails = status === 'online;'
+  updateUser(state, payload) {
+    const { userId, userDetails } = payload;
+
+    Object.assign(state.users[userId], userDetails);
   }
 };
 

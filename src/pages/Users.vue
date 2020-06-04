@@ -4,12 +4,12 @@
       <q-item 
         clickable
         to="/chat"
-        v-for="user in users"
+        v-for="(user, key) in users"
         v-ripple
-        :key="user.id">
+        :key="key">
         <q-item-section avatar>
           <q-avatar color="primary" text-color="white">
-            {{ user.name[0] }}
+            {{ user.name }}
           </q-avatar>
         </q-item-section>
 
@@ -29,23 +29,11 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
-  data () {
-    return {
-      users: [{
-        id: 1,
-        name: 'Beni',
-        online: true
-      },{
-        id: 2,
-        name: 'Joe',
-        online: true
-      },{
-        id: 3,
-        name: 'Kim',
-        online: false
-      }]
-    }
+  computed: {
+    ...mapGetters('store', ['users'])
   }
 }
 </script>
