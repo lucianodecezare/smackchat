@@ -7,14 +7,14 @@
       v-if="tab === 'register'"
       v-model="formData.name"
     />
-    <q-input
+    <q-input 
       class="q-mb-md"
       label="Email"
       outlined
       type="email"
       v-model="formData.email"
     />
-    <q-input
+    <q-input 
       class="q-mb-md"
       label="Password"
       outlined
@@ -46,7 +46,7 @@ export default {
       },
       loadingLogin: false,
       loadingRegister: false
-    }
+    };
   },
   methods: {
     ...mapActions('store', ['loginUser', 'registerUser']),
@@ -74,5 +74,5 @@ export default {
     }
   },
   props: ['tab']
-}
+};
 </script>
