@@ -48,14 +48,14 @@ export default {
   methods: {
     ...mapActions('store', ['loginUser', 'registerUser']),
     async login() {
-      this.$q.loading.show({ message: 'Autenticando usuário' });
+      this.$q.loading.show({ message: 'Authenticating user' });
 
       await this.loginUser(this.formData);
 
       this.$q.loading.hide();
     },
     async register() {
-      this.$q.loading.show({ message: 'Registrando usuário' });
+      this.$q.loading.show({ message: 'Registering user' });
 
       await this.registerUser(this.formData);
 

@@ -1,17 +1,17 @@
 <template>
   <q-page class="flex column">
     <!-- Offline Alert -->
-    <!-- <q-banner class="bg-grey-4 text-center">
-      User is offline
-    </q-banner> -->
+    <q-banner class="bg-grey-4 text-center" v-if="!otherUserDetails.online">
+      {{ otherUserDetails.name }} is offline
+    </q-banner>
     <!-- Chat Messages -->
     <div class="q-pa-md column col justify-end">
         <q-chat-message
           class="full-width"
-          v-for="message in messages"
+          v-for="(message, key) in messages"
           :sent="message.from === 'me'"
-          :key="message.text"
-          :name="message.from"
+          :key="key"
+          :name="message.from === 'me' ? 'Me' : otherUserDetails.name"
           :text="[message.text]"
         />
     </div>
@@ -46,23 +46,53 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex';
+
+import mixinOtherUserDetails from '../mixins/mixin-other-user-details';
+
 export default {
+  computed: {
+    ...mapState('store', ['messages', 'userDetails'])
+  },
   data () {
     return {
-      messages: [
-        { text: 'Ohaio!', from: 'me' },
-        { text: 'ORA! ORA!', from: 'them' },
-        { text: 'See you next time', from: 'me' }
-      ],
-      newMessage: ''
+      newMessage: '',
+      otherUserId: this.$route.params.otherUserId
     }
   },
+  destroyed() {
+    this.firebaseStopGettingMessages();
+  },
   methods: {
+    ...mapActions(
+      'store',
+      [
+        'firebaseGetMessages',
+        'firebaseSendMessage',
+        'firebaseStopGettingMessages'
+      ]
+    ),
     sendMessage(asd) {
-      this.messages.push({ text: this.newMessage, from: 'me' });
+      this.firebaseSendMessage(
+        {
+          message: {
+            from: 'me',
+            text: this.newMessage
+          },
+          otherUserId: this.otherUserId
+        }
+      );
 
       this.newMessage = '';
     }
+  },
+  mixins: [mixinOtherUserDetails],
+  mounted() {
+    this.$q.loading.show({ message: 'Recovering messages' });
+
+    this.firebaseGetMessages(this.otherUserId);
+
+    this.$q.loading.hide();
   }
 }
 </script>

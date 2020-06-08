@@ -2,7 +2,10 @@ import Vue from 'vue';
 
 import { firebaseAuth, firebaseDb } from 'boot/firebase';
 
+let messagesRef;
+
 const state = {
+  messages: {},
   userDetails: {},
   users: {}
 };
@@ -10,7 +13,7 @@ const state = {
 const getters = {
   users: (state) => {
     const filteredUsers = {};
-    
+
     Object.keys(state.users).forEach((key) => {
       if (key !== state.userDetails.userId) {
         filteredUsers[key] = state.users[key];
@@ -22,6 +25,18 @@ const getters = {
 };
 
 const actions = {
+  firebaseGetMessages({ commit, state }, otherUserId) {
+    const userId = state.userDetails.userId;
+
+    messagesRef = firebaseDb.ref(`chats/${userId}/${otherUserId}`);
+
+    messagesRef.on("child_added", (snapshot) => {
+      const messageDetails = snapshot.val();
+      const messageId = snapshot.key;
+
+      commit('addMessages', { messageDetails, messageId });
+    });
+  },
   firebaseGetUsers({ commit }) {
     firebaseDb.ref('users').on('child_added', (snapshot) => {
       const userDetails = snapshot.val();
@@ -37,7 +52,31 @@ const actions = {
       commit('updateUser', { userId, userDetails });
     });
   },
-  async firebaseUpdateUser({}, payload) {
+  firebaseSendMessage({ state }, payload) {
+    const { message, otherUserId } = payload;
+
+    firebaseDb
+      .ref(`chats/${state.userDetails.userId}/${otherUserId}`)
+      .push(message);
+    
+    const { message: { text } } = payload;
+    const newMessage = {
+      from: 'Them',
+      text,
+    };
+
+    firebaseDb
+      .ref(`chats/${otherUserId}/${state.userDetails.userId}`)
+      .push(newMessage);
+  },
+  firebaseStopGettingMessages({ commit }) {
+    if (messagesRef) {
+      messagesRef.off('child_added');
+
+      commit('clearMessages');
+    }
+  },
+  async firebaseUpdateUser({ }, payload) {
     const { updates, userId } = payload;
 
     await firebaseDb.ref(`users/${userId}`).update(updates);
@@ -64,7 +103,7 @@ const actions = {
 
         // Get users
         dispatch('firebaseGetUsers');
-        
+
         // #TODO: Improve redirection
         // Avoiding redundant navigation
         if (this.$router.app.$route.fullPath !== '/') {
@@ -90,7 +129,7 @@ const actions = {
       }
     })
   },
-  async loginUser({}, payload) {
+  async loginUser({ }, payload) {
     const { email, password } = payload;
 
     await firebaseAuth.signInWithEmailAndPassword(
@@ -101,7 +140,7 @@ const actions = {
   async logoutUser() {
     await firebaseAuth.signOut();
   },
-  async registerUser({}, payload) {
+  async registerUser({ }, payload) {
     const { email, name, password } = payload;
     const auth = await firebaseAuth.createUserWithEmailAndPassword(
       email,
@@ -121,10 +160,18 @@ const actions = {
 };
 
 const mutations = {
+  addMessages(state, payload) {
+    const { messageDetails, messageId } = payload;
+
+    Vue.set(state.messages, messageId, messageDetails);
+  },
   addUser(state, payload) {
     const { userDetails, userId } = payload;
 
     Vue.set(state.users, userId, userDetails);
+  },
+  clearMessages(state) {
+    state.messages = {};
   },
   setUserDetails(state, payload) {
     state.userDetails = payload;

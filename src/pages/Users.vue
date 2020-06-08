@@ -3,10 +3,11 @@
     <q-list class="full-width" separator>
       <q-item 
         clickable
-        to="/chat"
         v-for="(user, key) in users"
         v-ripple
-        :key="key">
+        :key="key"
+        :to="`/chat/${key}`"
+      >
         <q-item-section avatar>
           <q-avatar color="primary" text-color="white">
             {{ user.name }}

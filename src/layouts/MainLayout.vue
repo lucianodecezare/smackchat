@@ -49,17 +49,20 @@
 <script>
 import { mapActions, mapState } from 'vuex';
 
-import EssentialLink from 'components/EssentialLink';
+import mixinOtherUserDetails from '../mixins/mixin-other-user-details';
 
 export default {
-  components: { EssentialLink },
   computed: {
     ...mapState('store', ['userDetails']),
     title() {
       const title = {
         '/': 'SmackChat',
         '/auth': 'Login',
-        '/chat': 'Chat',
+      };
+
+      // This because of route params
+      if (this.$route.fullPath.includes('/chat')) {
+        return this.otherUserDetails.name;
       }
 
       return title[this.$route.fullPath];
@@ -67,6 +70,7 @@ export default {
   },
   methods: {
     ...mapActions('store', ['logoutUser'])
-  }
+  },
+  mixins: [mixinOtherUserDetails]
 }
 </script>
